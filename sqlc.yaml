@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - schema: "database/sqlc/pg/config/schema.sql"
+    queries: "database/sqlc/pg/config/query.sql"
+    engine: "postgresql"
+    database:
+      uri: "postgresql://${PG_USER}:${PG_PASS}@${PG_HOST}:${PG_PORT}/${PG_DB}"
+    gen:
+      go:
+        out: "database/sqlc/pg/sqlcm"
+        sql_package: "database/sql"
+
