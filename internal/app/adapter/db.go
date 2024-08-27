@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func NewDB(db *sql.DB) port.DB {
+func NewDB(db *sql.DB) *DBSqlc {
 	return &DBSqlc{db: db}
 }
 

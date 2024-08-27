@@ -3,6 +3,7 @@ package main
 import (
 	"FaisalBudiono/go-jwt/internal/app/adapter"
 	"FaisalBudiono/go-jwt/internal/app/core"
+	"FaisalBudiono/go-jwt/internal/app/core/pwhash/argon"
 	"FaisalBudiono/go-jwt/internal/app/port"
 	"FaisalBudiono/go-jwt/internal/db"
 	"FaisalBudiono/go-jwt/internal/env"
@@ -26,7 +27,7 @@ func main() {
 	e := echo.New()
 
 	adb := adapter.NewDB(db.DB)
-	hasher := core.NewPwHasher()
+	hasher := argon.New()
 	cauth := core.NewAuth(adb, hasher)
 
 	e.Use(middleware.Logger())

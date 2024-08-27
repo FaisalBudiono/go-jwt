@@ -5,20 +5,21 @@ import (
 	"FaisalBudiono/go-jwt/internal/app/port/common"
 )
 
-type Auth interface {
-	Reg(port.RegisterInput) (common.User, error)
-}
-
-func NewAuth(db port.DB, hasher PwHasher) Auth {
-	return &auth{
-		db:     db,
-		hasher: hasher,
-	}
+type pwHasher interface {
+	Hash(plain string) (string, error)
+	Verify(plain, hashed string) (bool, error)
 }
 
 type auth struct {
 	db     port.DB
-	hasher PwHasher
+	hasher pwHasher
+}
+
+func NewAuth(db port.DB, hasher pwHasher) *auth {
+	return &auth{
+		db:     db,
+		hasher: hasher,
+	}
 }
 
 func (a *auth) Reg(p port.RegisterInput) (common.User, error) {
@@ -48,4 +49,12 @@ func (a *auth) Reg(p port.RegisterInput) (common.User, error) {
 	}
 
 	return u, nil
+}
+
+func (a *auth) Login(p port.LoginInput) (common.To, error) {
+	tx, err := a.db.DB().BeginTx(p.Ctx, nil)
+	if err != nil {
+		return common.User{}, err
+	}
+	defer tx.Rollback()
 }
