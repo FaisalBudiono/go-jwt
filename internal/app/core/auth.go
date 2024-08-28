@@ -7,12 +7,17 @@ import (
 	"database/sql"
 )
 
-// func NewAuth(db port.DB, hasher PwHasher) Auth {
-// 	return &auth{
-// 		db:     db,
-// 		hasher: hasher,
-// 	}
-// }
+func NewAuth(
+	db *sql.DB,
+	hasher hasher.PwHasher,
+	uInserter userInserter,
+) *auth {
+	return &auth{
+		db:        db,
+		hasher:    hasher,
+		uInserter: uInserter,
+	}
+}
 
 type userInserter interface {
 	InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error)

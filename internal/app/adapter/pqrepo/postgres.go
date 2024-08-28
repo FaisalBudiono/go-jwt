@@ -1,0 +1,41 @@
+package pqrepo
+
+import (
+	"FaisalBudiono/go-jwt/internal/app/domain"
+	"FaisalBudiono/go-jwt/internal/db/sqlc/pg/sqlcm"
+	"context"
+	"database/sql"
+	"strconv"
+)
+
+type postgres struct {
+	db *sql.DB
+}
+
+func New(
+	db *sql.DB,
+) *postgres {
+	return &postgres{
+		db: db,
+	}
+}
+
+func (p *postgres) InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error) {
+	res, err := sqlcm.New(p.db).WithTx(tx).InsertUser(ctx, sqlcm.InsertUserParams{
+		Name:     u.Name,
+		Email:    u.Email,
+		Password: u.Password,
+	})
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return domain.User{
+		ID:        strconv.FormatInt(res.ID, 10),
+		Name:      res.Name,
+		Email:     res.Email,
+		Password:  res.Password,
+		CreatedAt: res.CreatedAt.Time,
+		UpdatedAt: res.UpdatedAt.Time,
+	}, nil
+}
