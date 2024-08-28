@@ -24,20 +24,20 @@ type params struct {
 	keyLength   uint32
 }
 
-type PwHashArgon struct {
+type pwHashArgon struct {
 	params params
 }
 
-func (p *PwHashArgon) Hash(plain string) (string, error) {
+func (p *pwHashArgon) Hash(plain string) (string, error) {
 	return generateFromPassword(plain, &p.params)
 }
 
-func (p *PwHashArgon) Verify(plain string, hashed string) (bool, error) {
+func (p *pwHashArgon) Verify(plain string, hashed string) (bool, error) {
 	return comparePasswordAndHash(plain, hashed)
 }
 
-func New() *PwHashArgon {
-	return &PwHashArgon{
+func New() *pwHashArgon {
+	return &pwHashArgon{
 		params: params{
 			memory:      64 * 1024,
 			iterations:  3,

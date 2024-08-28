@@ -25,7 +25,7 @@ func RunCreate() {
 
 	firstArg := strings.Split(input, " ")[0]
 
-	NewMigrator(db.DB).Create(firstArg)
+	NewMigrator(db.PostgresConn()).Create(firstArg)
 
 	fmt.Println()
 	fmt.Println("Migration file successfully created")
@@ -33,20 +33,20 @@ func RunCreate() {
 
 func RunDown() {
 	fmt.Println("Start rolling back migration...")
-	NewMigrator(db.DB).Down()
+	NewMigrator(db.PostgresConn()).Down()
 	fmt.Println("Finish rolling back migration...")
 }
 
 func RunStatus() {
-	NewMigrator(db.DB).Status()
+	NewMigrator(db.PostgresConn()).Status()
 }
 
 func RunUp() {
 	fmt.Println("Start migrating migration...")
-	NewMigrator(db.DB).Up()
+	NewMigrator(db.PostgresConn()).Up()
 	fmt.Println("Finish migrating migration...")
 }
 
 func RunVersion() {
-	NewMigrator(db.DB).Version()
+	NewMigrator(db.PostgresConn()).Version()
 }

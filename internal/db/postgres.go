@@ -9,17 +9,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-var DB *sql.DB
-
-func Init() {
-	DB = makeConnection()
+func PostgresConn() *sql.DB {
+	return makeConnectionPostgres()
 }
 
-func Conn() *sql.DB {
-	return makeConnection()
-}
-
-func makeConnection() *sql.DB {
+func makeConnectionPostgres() *sql.DB {
 	source := makePostgresDSN(
 		viper.GetString("POSTGRES_USER"),
 		viper.GetString("POSTGRES_PASSWORD"),

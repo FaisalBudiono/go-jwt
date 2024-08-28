@@ -1,50 +1,77 @@
 package core
 
 import (
-	"FaisalBudiono/go-jwt/internal/app/port"
-	"FaisalBudiono/go-jwt/internal/app/port/common"
+	"FaisalBudiono/go-jwt/internal/app/core/hasher"
+	"FaisalBudiono/go-jwt/internal/app/domain"
+	"context"
+	"database/sql"
 )
 
-type Auth interface {
-	Reg(port.RegisterInput) (common.User, error)
-}
+// func NewAuth(db port.DB, hasher PwHasher) Auth {
+// 	return &auth{
+// 		db:     db,
+// 		hasher: hasher,
+// 	}
+// }
 
-func NewAuth(db port.DB, hasher PwHasher) Auth {
-	return &auth{
-		db:     db,
-		hasher: hasher,
-	}
+type userInserter interface {
+	InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error)
 }
 
 type auth struct {
-	db     port.DB
-	hasher PwHasher
+	db        *sql.DB
+	hasher    hasher.PwHasher
+	uInserter userInserter
 }
 
-func (a *auth) Reg(p port.RegisterInput) (common.User, error) {
-	tx, err := a.db.DB().BeginTx(p.Ctx, nil)
+type registerPort interface {
+	Ctx() (context.Context, error)
+	Name() (string, error)
+	Email() (string, error)
+	Password() (string, error)
+}
+
+func (a *auth) Reg(port registerPort) (domain.User, error) {
+	ctx, err := port.Ctx()
 	if err != nil {
-		return common.User{}, err
+		return domain.User{}, err
+	}
+	name, err := port.Name()
+	if err != nil {
+		return domain.User{}, err
+	}
+	email, err := port.Email()
+	if err != nil {
+		return domain.User{}, err
+	}
+	password, err := port.Password()
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	tx, err := a.db.BeginTx(ctx, nil)
+	if err != nil {
+		return domain.User{}, err
 	}
 	defer tx.Rollback()
 
-	hash, err := a.hasher.Hash(p.Password)
+	hash, err := a.hasher.Hash(password)
 	if err != nil {
-		return common.User{}, err
+		return domain.User{}, err
 	}
 
-	u, err := a.db.InsertUser(p.Ctx, common.User{
-		Name:     p.Name,
-		Email:    p.Email,
+	u, err := a.uInserter.InsertUser(ctx, domain.User{
+		Name:     name,
+		Email:    email,
 		Password: hash,
 	}, tx)
 	if err != nil {
-		return common.User{}, err
+		return domain.User{}, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return common.User{}, err
+		return domain.User{}, err
 	}
 
 	return u, nil
