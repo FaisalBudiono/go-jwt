@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	migrationDir string = "database/migrations"
+	migrationDir string = "internal/db/migrations"
 )
 
 type gooseMigrator struct {
