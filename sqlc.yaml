@@ -1,12 +1,17 @@
 version: "2"
 sql:
-  - schema: "internal/db/sqlc/pg/config/schema.sql"
+  - engine: "postgresql"
+    schema: "internal/db/sqlc/pg/config/schema.sql"
     queries: "internal/db/sqlc/pg/config/query.sql"
-    engine: "postgresql"
     database:
       uri: "postgresql://${PG_USER}:${PG_PASS}@${PG_HOST}:${PG_PORT}/${PG_DB}"
     gen:
       go:
         out: "internal/db/sqlc/pg/sqlcm/"
         sql_package: "database/sql"
-
+  - engine: "sqlite"
+    schema: "internal/db/sqlc/sqlite/config/schema.sql"
+    queries: "internal/db/sqlc/sqlite/config/query.sql"
+    gen:
+      go:
+        out: "internal/db/sqlc/sqlite/sqlcm/"
