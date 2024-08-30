@@ -106,3 +106,12 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, e
 	)
 	return i, err
 }
+
+const truncateUsers = `-- name: TruncateUsers :exec
+DELETE FROM users
+`
+
+func (q *Queries) TruncateUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, truncateUsers)
+	return err
+}

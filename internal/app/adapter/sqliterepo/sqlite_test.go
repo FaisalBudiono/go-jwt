@@ -6,22 +6,38 @@ import (
 	"FaisalBudiono/go-jwt/internal/app/testcase"
 	"FaisalBudiono/go-jwt/internal/db/sqlc/sqlite/sqlcm"
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 const migrationDir = "../../../db/sqlite_migrations"
 
-func TestInsertUser(t *testing.T) {
-	t.Run("should successfully rollback insert user", func(t *testing.T) {
-		db := testcase.DBConn(testcase.DBMemory)
+type SQLiteSuite struct {
+	suite.Suite
 
-		err := testcase.NewMigrator(db).Migrate(migrationDir)
-		require.Nil(t, err)
+	db *sql.DB
+}
 
+func TestSQLiteSuite(t *testing.T) {
+	suite.Run(t, new(SQLiteSuite))
+}
+
+func (s *SQLiteSuite) SetupTest() {
+	s.db = testcase.DBConn(testcase.DBMemory)
+
+	err := testcase.NewMigrator(s.db).Migrate(migrationDir)
+	s.Require().Nil(err)
+}
+
+func (s *SQLiteSuite) TearDownSubTest() {
+	sqlcm.New(s.db).TruncateUsers(context.Background())
+}
+
+func (s *SQLiteSuite) TestInsertUser() {
+	s.Run("should successfully rollback insert user", func() {
 		u := domain.User{
 			Name:     "john doe",
 			Email:    "john@doe.com",
@@ -29,28 +45,23 @@ func TestInsertUser(t *testing.T) {
 		}
 		now := time.Now()
 
-		tx, err := db.BeginTx(context.Background(), nil)
-		require.Nil(t, err)
+		tx, err := s.db.BeginTx(context.Background(), nil)
+		s.Require().Nil(err)
 
-		q := sqliterepo.New(db, newNowerMock(now))
+		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
 		_, err = q.InsertUser(context.Background(), u, tx)
-		require.Nil(t, err)
+		s.Require().Nil(err)
 
 		err = tx.Rollback()
-		require.Nil(t, err)
+		s.Require().Nil(err)
 
-		dbUsers, err := sqlcm.New(db).AllUsers(context.Background())
-		require.Nil(t, err)
+		dbUsers, err := sqlcm.New(s.db).AllUsers(context.Background())
+		s.Require().Nil(err)
 
-		assert.Equal(t, 0, len(dbUsers))
+		s.Assert().Equal(0, len(dbUsers))
 	})
 
-	t.Run("should successfully commit insert user", func(t *testing.T) {
-		db := testcase.DBConn(testcase.DBMemory)
-
-		err := testcase.NewMigrator(db).Migrate(migrationDir)
-		require.Nil(t, err)
-
+	s.Run("should successfully commit insert user", func() {
 		u := domain.User{
 			Name:     "john doe",
 			Email:    "johndoe@gmail.com",
@@ -58,21 +69,21 @@ func TestInsertUser(t *testing.T) {
 		}
 		now := time.Now()
 
-		tx, err := db.BeginTx(context.Background(), nil)
-		require.Nil(t, err)
+		tx, err := s.db.BeginTx(context.Background(), nil)
+		s.Require().Nil(err)
 
-		q := sqliterepo.New(db, newNowerMock(now))
+		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
 		res, err := q.InsertUser(context.Background(), u, tx)
-		require.Nil(t, err)
+		s.Require().Nil(err)
 
 		err = tx.Commit()
-		require.Nil(t, err)
+		s.Require().Nil(err)
 
-		dbUsers, err := sqlcm.New(db).AllUsers(context.Background())
-		require.Nil(t, err)
+		dbUsers, err := sqlcm.New(s.db).AllUsers(context.Background())
+		s.Require().Nil(err)
 
-		assert.Equal(t, 1, len(dbUsers))
-		assert.Equal(t, domain.User{
+		s.Assert().Equal(1, len(dbUsers))
+		s.Assert().Equal(domain.User{
 			ID:        res.ID,
 			Name:      u.Name,
 			Email:     u.Email,
@@ -82,12 +93,7 @@ func TestInsertUser(t *testing.T) {
 		}, res)
 	})
 
-	t.Run("should successfully insert user without tx", func(t *testing.T) {
-		db := testcase.DBConn(testcase.DBMemory)
-
-		err := testcase.NewMigrator(db).Migrate(migrationDir)
-		require.Nil(t, err)
-
+	s.Run("should successfully insert user without tx", func() {
 		u := domain.User{
 			Name:     "john doe",
 			Email:    "johndoe@gmail.com",
@@ -95,16 +101,16 @@ func TestInsertUser(t *testing.T) {
 		}
 		now := time.Now()
 
-		q := sqliterepo.New(db, newNowerMock(now))
+		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
 		res, err := q.InsertUser(context.Background(), u, nil)
 
-		require.Nil(t, err)
+		s.Require().Nil(err)
 
-		dbUsers, err := sqlcm.New(db).AllUsers(context.Background())
-		require.Nil(t, err)
+		dbUsers, err := sqlcm.New(s.db).AllUsers(context.Background())
+		s.Require().Nil(err)
 
-		assert.Equal(t, 1, len(dbUsers))
-		assert.Equal(t, domain.User{
+		s.Assert().Equal(1, len(dbUsers))
+		s.Assert().Equal(domain.User{
 			ID:        res.ID,
 			Name:      u.Name,
 			Email:     u.Email,
@@ -113,18 +119,4 @@ func TestInsertUser(t *testing.T) {
 			UpdatedAt: time.Unix(now.Unix(), 0),
 		}, res)
 	})
-}
-
-type nowerMock struct {
-	now time.Time
-}
-
-func newNowerMock(t time.Time) *nowerMock {
-	return &nowerMock{
-		now: t,
-	}
-}
-
-func (n *nowerMock) Now() time.Time {
-	return n.now
 }

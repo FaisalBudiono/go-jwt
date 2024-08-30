@@ -23,6 +23,20 @@ func (n *nowerImpl) Now() time.Time {
 	return time.Now()
 }
 
+type nowerSpy struct {
+	now time.Time
+}
+
+func NewNowerSpy(t time.Time) *nowerSpy {
+	return &nowerSpy{
+		now: t,
+	}
+}
+
+func (n *nowerSpy) Now() time.Time {
+	return n.now
+}
+
 type sqlite struct {
 	db    *sql.DB
 	nower nower
