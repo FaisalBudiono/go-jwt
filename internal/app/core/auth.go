@@ -18,29 +18,23 @@ func NewAuth(
 	hasher hasher.PwHasher,
 	userRepo port.UserRepo,
 	tokenMng jwt.TokenManager,
-	tokenC tokenCacher,
+	tokenCacher jwt.TokenCacher,
 ) *auth {
 	return &auth{
-		db:       db,
-		hasher:   hasher,
-		userRepo: userRepo,
-		tokenMng: tokenMng,
-		tokenC:   tokenC,
+		db:          db,
+		hasher:      hasher,
+		userRepo:    userRepo,
+		tokenMng:    tokenMng,
+		tokenCacher: tokenCacher,
 	}
 }
 
-type (
-	tokenCacher interface {
-		Cache(ctx context.Context, t domain.Token) error
-	}
-)
-
 type auth struct {
-	db       *sql.DB
-	hasher   hasher.PwHasher
-	userRepo port.UserRepo
-	tokenMng jwt.TokenManager
-	tokenC   tokenCacher
+	db          *sql.DB
+	hasher      hasher.PwHasher
+	userRepo    port.UserRepo
+	tokenMng    jwt.TokenManager
+	tokenCacher jwt.TokenCacher
 }
 
 type registerPort interface {
@@ -135,7 +129,7 @@ func (a *auth) Login(port loginPort) (domain.Token, error) {
 		return domain.Token{}, err
 	}
 
-	err = a.tokenC.Cache(ctx, token)
+	err = a.tokenCacher.Cache(ctx, token)
 	if err != nil {
 		return domain.Token{}, err
 	}
