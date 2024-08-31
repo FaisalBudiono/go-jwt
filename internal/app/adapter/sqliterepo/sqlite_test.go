@@ -2,6 +2,7 @@ package sqliterepo_test
 
 import (
 	"FaisalBudiono/go-jwt/internal/app/adapter/sqliterepo"
+	"FaisalBudiono/go-jwt/internal/app/core/nower"
 	"FaisalBudiono/go-jwt/internal/app/domain"
 	"FaisalBudiono/go-jwt/internal/app/testcase"
 	"FaisalBudiono/go-jwt/internal/db/sqlc/sqlite/sqlcm"
@@ -48,7 +49,7 @@ func (s *SQLiteSuite) TestInsertUser() {
 		tx, err := s.db.BeginTx(context.Background(), nil)
 		s.Require().Nil(err)
 
-		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
+		q := sqliterepo.New(s.db, nower.NewFake(now))
 		_, err = q.InsertUser(context.Background(), u, tx)
 		s.Require().Nil(err)
 
@@ -72,7 +73,7 @@ func (s *SQLiteSuite) TestInsertUser() {
 		tx, err := s.db.BeginTx(context.Background(), nil)
 		s.Require().Nil(err)
 
-		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
+		q := sqliterepo.New(s.db, nower.NewFake(now))
 		res, err := q.InsertUser(context.Background(), u, tx)
 		s.Require().Nil(err)
 
@@ -101,7 +102,7 @@ func (s *SQLiteSuite) TestInsertUser() {
 		}
 		now := time.Now()
 
-		q := sqliterepo.New(s.db, sqliterepo.NewNowerSpy(now))
+		q := sqliterepo.New(s.db, nower.NewFake(now))
 		res, err := q.InsertUser(context.Background(), u, nil)
 
 		s.Require().Nil(err)
@@ -118,5 +119,43 @@ func (s *SQLiteSuite) TestInsertUser() {
 			CreatedAt: time.Unix(now.Unix(), 0),
 			UpdatedAt: time.Unix(now.Unix(), 0),
 		}, res)
+	})
+}
+
+func (s *SQLiteSuite) TestFindUserByEmail() {
+	s.Run("should successfully find user by email", func() {
+		u := domain.User{
+			Name:     "john doe",
+			Email:    "johndoe@gmail.com",
+			Password: "123456",
+		}
+		now := time.Unix(time.Now().Unix(), 0)
+
+		q := sqliterepo.New(s.db, nower.NewFake(now))
+		_, err := q.InsertUser(context.Background(), u, nil)
+		s.Require().Nil(err)
+
+		s.Require().Nil(err)
+
+		q = sqliterepo.New(s.db, nower.NewFake(now))
+		res, err := q.FindUserByEmail(context.Background(), u.Email)
+		s.Require().Nil(err)
+
+		s.Assert().Equal(domain.User{
+			ID:        res.ID,
+			Name:      u.Name,
+			Email:     u.Email,
+			Password:  u.Password,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}, res)
+	})
+
+	s.Run("should return error if user not found", func() {
+		q := sqliterepo.New(s.db, nower.NewFake(time.Now()))
+		res, err := q.FindUserByEmail(context.Background(), "johndoe@gmail.com")
+
+		s.Assert().Equal(domain.User{}, res)
+		s.Assert().Equal(sql.ErrNoRows, err)
 	})
 }

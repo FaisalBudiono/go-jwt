@@ -1,9 +1,11 @@
 package main
 
 import (
+	"FaisalBudiono/go-jwt/internal/app/adapter/cacher"
 	"FaisalBudiono/go-jwt/internal/app/adapter/pqrepo"
 	"FaisalBudiono/go-jwt/internal/app/core"
 	"FaisalBudiono/go-jwt/internal/app/core/hasher/argon"
+	"FaisalBudiono/go-jwt/internal/app/core/jwt"
 	"FaisalBudiono/go-jwt/internal/app/httplib"
 	"FaisalBudiono/go-jwt/internal/app/httplib/req"
 	"FaisalBudiono/go-jwt/internal/app/httplib/reso"
@@ -25,8 +27,16 @@ func main() {
 	e.Validator = httplib.NewValidator()
 
 	dbConn := db.PostgresConn()
+	jwtSigner := jwt.NewTokenGen()
+	redisClient := cacher.NewRedis()
 
-	auth := core.NewAuth(dbConn, argon.New(), pqrepo.New(dbConn))
+	auth := core.NewAuth(
+		dbConn,
+		argon.New(),
+		pqrepo.New(dbConn),
+		jwtSigner,
+		redisClient,
+	)
 
 	e.Use(middleware.Logger())
 

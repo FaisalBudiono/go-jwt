@@ -21,7 +21,7 @@ func New(
 }
 
 func (p *postgres) InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error) {
-	res, err := sqlcm.New(p.db).WithTx(tx).InsertUser(ctx, sqlcm.InsertUserParams{
+	res, err := p.makeQuery(tx).InsertUser(ctx, sqlcm.InsertUserParams{
 		Name:     u.Name,
 		Email:    u.Email,
 		Password: u.Password,
@@ -38,4 +38,28 @@ func (p *postgres) InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (d
 		CreatedAt: res.CreatedAt.Time,
 		UpdatedAt: res.UpdatedAt.Time,
 	}, nil
+}
+
+func (p *postgres) FindUserByEmail(ctx context.Context, email string) (domain.User, error) {
+	res, err := p.makeQuery(nil).FindUserByEmail(ctx, email)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return domain.User{
+		ID:        strconv.FormatInt(res.ID, 10),
+		Name:      res.Name,
+		Email:     res.Email,
+		Password:  res.Password,
+		CreatedAt: res.CreatedAt.Time,
+		UpdatedAt: res.UpdatedAt.Time,
+	}, nil
+}
+
+func (p *postgres) makeQuery(tx *sql.Tx) *sqlcm.Queries {
+	if tx == nil {
+		return sqlcm.New(p.db)
+	}
+
+	return sqlcm.New(p.db).WithTx(tx)
 }

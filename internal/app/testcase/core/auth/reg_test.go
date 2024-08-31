@@ -3,6 +3,7 @@ package auth_test
 import (
 	"FaisalBudiono/go-jwt/internal/app/adapter/sqliterepo"
 	"FaisalBudiono/go-jwt/internal/app/core"
+	"FaisalBudiono/go-jwt/internal/app/core/nower"
 	"FaisalBudiono/go-jwt/internal/app/domain"
 	"FaisalBudiono/go-jwt/internal/app/testcase"
 	"FaisalBudiono/go-jwt/internal/db/sqlc/sqlite/sqlcm"
@@ -33,7 +34,9 @@ func TestRegisterUser(t *testing.T) {
 	c := core.NewAuth(
 		db,
 		deps,
-		sqliterepo.New(db, sqliterepo.NewNowerSpy(now)),
+		sqliterepo.New(db, nower.NewFake(time.Now())),
+		deps,
+		deps,
 	)
 
 	got, err := c.Reg(port)
@@ -80,6 +83,14 @@ func (m *mockRegisterPort) Password() (string, error) {
 }
 
 type depsRegister struct{}
+
+func (m *depsRegister) Cache(ctx context.Context, t domain.Token) error {
+	panic("unimplemented")
+}
+
+func (m *depsRegister) Gen(u domain.User) (domain.Token, error) {
+	panic("unimplemented")
+}
 
 func newDepsRegister() *depsRegister {
 	return &depsRegister{}
