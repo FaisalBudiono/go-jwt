@@ -2,7 +2,9 @@ package core
 
 import (
 	"FaisalBudiono/go-jwt/internal/app/core/hasher"
+	"FaisalBudiono/go-jwt/internal/app/core/jwt"
 	"FaisalBudiono/go-jwt/internal/app/domain"
+	"FaisalBudiono/go-jwt/internal/app/port"
 	"context"
 	"database/sql"
 
@@ -14,27 +16,20 @@ var ErrInvalidCredential = errors.New("invalid credentials")
 func NewAuth(
 	db *sql.DB,
 	hasher hasher.PwHasher,
-	uRepo userRepo,
-	tokenGen tokenGenerator,
+	userRepo port.UserRepo,
+	tokenMng jwt.TokenManager,
 	tokenC tokenCacher,
 ) *auth {
 	return &auth{
 		db:       db,
 		hasher:   hasher,
-		uRepo:    uRepo,
-		tokenGen: tokenGen,
+		userRepo: userRepo,
+		tokenMng: tokenMng,
 		tokenC:   tokenC,
 	}
 }
 
 type (
-	userRepo interface {
-		InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error)
-		FindUserByEmail(ctx context.Context, email string) (domain.User, error)
-	}
-	tokenGenerator interface {
-		Gen(u domain.User) (domain.Token, error)
-	}
 	tokenCacher interface {
 		Cache(ctx context.Context, t domain.Token) error
 	}
@@ -43,8 +38,8 @@ type (
 type auth struct {
 	db       *sql.DB
 	hasher   hasher.PwHasher
-	uRepo    userRepo
-	tokenGen tokenGenerator
+	userRepo port.UserRepo
+	tokenMng jwt.TokenManager
 	tokenC   tokenCacher
 }
 
@@ -84,7 +79,7 @@ func (a *auth) Reg(port registerPort) (domain.User, error) {
 		return domain.User{}, err
 	}
 
-	u, err := a.uRepo.InsertUser(ctx, domain.User{
+	u, err := a.userRepo.InsertUser(ctx, domain.User{
 		Name:     name,
 		Email:    email,
 		Password: hash,
@@ -121,7 +116,7 @@ func (a *auth) Login(port loginPort) (domain.Token, error) {
 		return domain.Token{}, err
 	}
 
-	u, err := a.uRepo.FindUserByEmail(ctx, email)
+	u, err := a.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Token{}, errors.Join(ErrInvalidCredential, err)
@@ -135,7 +130,7 @@ func (a *auth) Login(port loginPort) (domain.Token, error) {
 		return domain.Token{}, errors.Join(ErrInvalidCredential, err)
 	}
 
-	token, err := a.tokenGen.Gen(u)
+	token, err := a.tokenMng.Gen(u)
 	if err != nil {
 		return domain.Token{}, err
 	}
