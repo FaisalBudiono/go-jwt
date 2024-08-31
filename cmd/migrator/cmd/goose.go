@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	prodDir   string = "internal/db/migrations"
-	sqliteDir string = "internal/db/sqlite_migrations"
+	migrationDir string = "internal/db/migrations"
 )
 
 type gooseMigrator struct {
@@ -26,40 +25,35 @@ func NewMigrator(db *sql.DB) *gooseMigrator {
 }
 
 func (g *gooseMigrator) Create(filename string) {
-	err := goose.Create(g.db, prodDir, filename, "sql")
-	if err != nil {
-		panic(err)
-	}
-
-	err = goose.Create(g.db, sqliteDir, filename, "sql")
+	err := goose.Create(g.db, migrationDir, filename, "sql")
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (g *gooseMigrator) Status() {
-	err := goose.Status(g.db, prodDir)
+	err := goose.Status(g.db, migrationDir)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (g *gooseMigrator) Version() {
-	err := goose.Version(g.db, prodDir)
+	err := goose.Version(g.db, migrationDir)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (g *gooseMigrator) Up() {
-	err := goose.Up(g.db, prodDir)
+	err := goose.Up(g.db, migrationDir)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (g *gooseMigrator) Down() {
-	err := goose.Down(g.db, prodDir)
+	err := goose.Down(g.db, migrationDir)
 	if err != nil {
 		panic(err)
 	}

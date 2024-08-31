@@ -9,9 +9,3 @@ sql:
       go:
         out: "internal/db/sqlc/pg/sqlcm/"
         sql_package: "database/sql"
-  - engine: "sqlite"
-    schema: "internal/db/sqlc/sqlite/config/schema.sql"
-    queries: "internal/db/sqlc/sqlite/config/query.sql"
-    gen:
-      go:
-        out: "internal/db/sqlc/sqlite/sqlcm/"
