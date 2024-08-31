@@ -31,9 +31,8 @@ func main() {
 	redisClient := cacher.NewRedis()
 
 	auth := core.NewAuth(
-		dbConn,
-		argon.New(),
 		pqrepo.New(dbConn),
+		argon.New(),
 		jwtSigner,
 		redisClient,
 	)

@@ -2,6 +2,7 @@ package pqrepo
 
 import (
 	"FaisalBudiono/go-jwt/internal/app/domain"
+	"FaisalBudiono/go-jwt/internal/app/port"
 	"FaisalBudiono/go-jwt/internal/db/sqlc/pg/sqlcm"
 	"context"
 	"database/sql"
@@ -20,7 +21,16 @@ func New(
 	}
 }
 
-func (p *postgres) InsertUser(ctx context.Context, u domain.User, tx *sql.Tx) (domain.User, error) {
+func (p *postgres) BeginTx(ctx context.Context) (port.DBTx, error) {
+	tx, err := p.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTx(tx), nil
+}
+
+func (p *postgres) InsertUser(ctx context.Context, u domain.User, tx port.DBTx) (domain.User, error) {
 	res, err := p.makeQuery(tx).InsertUser(ctx, sqlcm.InsertUserParams{
 		Name:     u.Name,
 		Email:    u.Email,
@@ -56,10 +66,15 @@ func (p *postgres) FindUserByEmail(ctx context.Context, email string) (domain.Us
 	}, nil
 }
 
-func (p *postgres) makeQuery(tx *sql.Tx) *sqlcm.Queries {
+func (p *postgres) makeQuery(tx port.DBTx) *sqlcm.Queries {
 	if tx == nil {
 		return sqlcm.New(p.db)
 	}
 
-	return sqlcm.New(p.db).WithTx(tx)
+	sqlTx, ok := tx.(*sqlTx)
+	if !ok {
+		panic("tx is not sqlTx")
+	}
+
+	return sqlcm.New(p.db).WithTx(sqlTx.tx)
 }

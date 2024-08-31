@@ -14,25 +14,22 @@ import (
 var ErrInvalidCredential = errors.New("invalid credentials")
 
 func NewAuth(
-	db *sql.DB,
-	hasher hasher.PwHasher,
 	userRepo port.UserRepo,
+	hasher hasher.PwHasher,
 	tokenMng jwt.TokenManager,
 	tokenCacher jwt.TokenCacher,
 ) *auth {
 	return &auth{
-		db:          db,
-		hasher:      hasher,
 		userRepo:    userRepo,
+		hasher:      hasher,
 		tokenMng:    tokenMng,
 		tokenCacher: tokenCacher,
 	}
 }
 
 type auth struct {
-	db          *sql.DB
-	hasher      hasher.PwHasher
 	userRepo    port.UserRepo
+	hasher      hasher.PwHasher
 	tokenMng    jwt.TokenManager
 	tokenCacher jwt.TokenCacher
 }
@@ -55,7 +52,7 @@ func (a *auth) Reg(port in.RegisterPort) (domain.User, error) {
 		return domain.User{}, err
 	}
 
-	tx, err := a.db.BeginTx(ctx, nil)
+	tx, err := a.userRepo.BeginTx(ctx)
 	if err != nil {
 		return domain.User{}, err
 	}
