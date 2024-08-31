@@ -5,7 +5,7 @@ import (
 	"FaisalBudiono/go-jwt/internal/app/core/jwt"
 	"FaisalBudiono/go-jwt/internal/app/domain"
 	"FaisalBudiono/go-jwt/internal/app/port"
-	"context"
+	"FaisalBudiono/go-jwt/internal/app/port/in"
 	"database/sql"
 
 	"github.com/go-errors/errors"
@@ -37,14 +37,7 @@ type auth struct {
 	tokenCacher jwt.TokenCacher
 }
 
-type registerPort interface {
-	Ctx() (context.Context, error)
-	Name() (string, error)
-	Email() (string, error)
-	Password() (string, error)
-}
-
-func (a *auth) Reg(port registerPort) (domain.User, error) {
+func (a *auth) Reg(port in.RegisterPort) (domain.User, error) {
 	ctx, err := port.Ctx()
 	if err != nil {
 		return domain.User{}, err
@@ -90,13 +83,7 @@ func (a *auth) Reg(port registerPort) (domain.User, error) {
 	return u, nil
 }
 
-type loginPort interface {
-	Ctx() (context.Context, error)
-	Email() (string, error)
-	Password() (string, error)
-}
-
-func (a *auth) Login(port loginPort) (domain.Token, error) {
+func (a *auth) Login(port in.LoginPort) (domain.Token, error) {
 	ctx, err := port.Ctx()
 	if err != nil {
 		return domain.Token{}, err
