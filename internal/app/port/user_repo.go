@@ -10,4 +10,5 @@ type UserRepo interface {
 
 	InsertUser(ctx context.Context, u domain.User, tx DBTx) (domain.User, error)
 	FindUserByEmail(ctx context.Context, email string) (domain.User, error)
+	FindUserByID(ctx context.Context, userID string) (domain.User, error)
 }

@@ -66,6 +66,10 @@ func (p *postgres) FindUserByEmail(ctx context.Context, email string) (domain.Us
 	}, nil
 }
 
+func (p *postgres) FindUserByID(ctx context.Context, userID string) (domain.User, error) {
+	panic("unimplemented")
+}
+
 func (p *postgres) makeQuery(tx port.DBTx) *sqlcm.Queries {
 	if tx == nil {
 		return sqlcm.New(p.db)

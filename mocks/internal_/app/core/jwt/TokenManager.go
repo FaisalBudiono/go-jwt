@@ -77,6 +77,62 @@ func (_c *TokenManager_Gen_Call) RunAndReturn(run func(domain.User) (domain.Toke
 	return _c
 }
 
+// Verify provides a mock function with given fields: accessToken
+func (_m *TokenManager) Verify(accessToken string) (string, error) {
+	ret := _m.Called(accessToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Verify")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(accessToken)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(accessToken)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(accessToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TokenManager_Verify_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Verify'
+type TokenManager_Verify_Call struct {
+	*mock.Call
+}
+
+// Verify is a helper method to define mock.On call
+//   - accessToken string
+func (_e *TokenManager_Expecter) Verify(accessToken interface{}) *TokenManager_Verify_Call {
+	return &TokenManager_Verify_Call{Call: _e.mock.On("Verify", accessToken)}
+}
+
+func (_c *TokenManager_Verify_Call) Run(run func(accessToken string)) *TokenManager_Verify_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *TokenManager_Verify_Call) Return(userID string, err error) *TokenManager_Verify_Call {
+	_c.Call.Return(userID, err)
+	return _c
+}
+
+func (_c *TokenManager_Verify_Call) RunAndReturn(run func(string) (string, error)) *TokenManager_Verify_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewTokenManager creates a new instance of TokenManager. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewTokenManager(t interface {

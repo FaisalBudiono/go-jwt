@@ -139,6 +139,63 @@ func (_c *UserRepo_FindUserByEmail_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
+// FindUserByID provides a mock function with given fields: ctx, userID
+func (_m *UserRepo) FindUserByID(ctx context.Context, userID string) (domain.User, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindUserByID")
+	}
+
+	var r0 domain.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (domain.User, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) domain.User); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(domain.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserRepo_FindUserByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindUserByID'
+type UserRepo_FindUserByID_Call struct {
+	*mock.Call
+}
+
+// FindUserByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *UserRepo_Expecter) FindUserByID(ctx interface{}, userID interface{}) *UserRepo_FindUserByID_Call {
+	return &UserRepo_FindUserByID_Call{Call: _e.mock.On("FindUserByID", ctx, userID)}
+}
+
+func (_c *UserRepo_FindUserByID_Call) Run(run func(ctx context.Context, userID string)) *UserRepo_FindUserByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserRepo_FindUserByID_Call) Return(_a0 domain.User, _a1 error) *UserRepo_FindUserByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserRepo_FindUserByID_Call) RunAndReturn(run func(context.Context, string) (domain.User, error)) *UserRepo_FindUserByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InsertUser provides a mock function with given fields: ctx, u, tx
 func (_m *UserRepo) InsertUser(ctx context.Context, u domain.User, tx port.DBTx) (domain.User, error) {
 	ret := _m.Called(ctx, u, tx)
